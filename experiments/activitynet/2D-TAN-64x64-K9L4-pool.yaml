@@ -1,0 +1,114 @@
+WORKERS: 16
+
+MODEL_DIR: /mnt/data-3/data/ding.li/2d_project/experiment/activitynet_for_test
+RESULT_DIR: /mnt/data-3/data/ding.li/2d_project/experiment/activitynet_for_test
+LOG_DIR: /mnt/data-3/data/ding.li/2d_project/experiment/activitynet_for_test
+DATA_DIR: /mnt/data-3/data/ding.li/2d_project/2d_data/ActivityNet
+
+DATASET:
+  NAME: ActivityNet
+  VIS_INPUT_TYPE: c3d
+  NO_VAL: True
+  NUM_SAMPLE_CLIPS: 256
+  TARGET_STRIDE: 4
+  NORMALIZE: True
+  RANDOM_SAMPLING: False
+
+TEST:
+  BATCH_SIZE: 128
+  RECALL: 1,5
+  TIOU: 0.3,0.5,0.7
+  EVAL_TRAIN: True
+  NMS_THRESH: 0.5
+
+CUDNN:
+  DETERMINISTIC: False
+  BENCHMARK: True
+
+TRAIN:
+  BATCH_SIZE: 128
+  LR: 0.0001
+  WEIGHT_DECAY: 0.0000
+  MAX_EPOCH: 100
+  CONTINUE: False
+
+LOSS:
+  NAME: bce_rescale_loss
+  PARAMS:
+    MIN_IOU: 0.5
+    MAX_IOU: 1.0
+    BIAS: 0.0
+
+RECLOSS:
+  NAME: reconstruction_loss
+  PARAMS:
+    TOPK: 10
+    MAX_IOU: 0.7
+    BIAS: 0.0
+    multi_scale_2d_map: True
+
+
+RECBCELOSS:
+  NAME: bce_cap_guide_loss
+  PARAMS:
+    POS_THRESH: 0.1
+    NEG_THRESH: 0.7
+    BIAS: 0.0
+    multi_scale_2d_map: True
+
+TAN:
+
+  FRAME_MODULE:
+    NAME: FrameAvgPool
+    PARAMS:
+      INPUT_SIZE: 500
+      HIDDEN_SIZE: 512
+      KERNEL_SIZE: 4
+      STRIDE: 4
+      multi_scale_2d_map: False
+
+  PROP_MODULE:
+    NAME: SparsePropMaxPool
+    PARAMS:
+      NUM_SCALE_LAYERS: [16,16,32]
+      multi_scale_2d_map: True
+      scales: [16, 32]
+
+  FUSION_MODULE:
+    NAME: BaseFusion
+    PARAMS:
+      HIDDEN_SIZE: 512
+      TXT_INPUT_SIZE: 300
+      TXT_HIDDEN_SIZE: 512
+      LSTM:
+        NUM_LAYERS: 3
+        BIDIRECTIONAL: False
+
+  MAP_MODULE:
+    NAME: MapConv
+    PARAMS:
+      INPUT_SIZE: 512
+      HIDDEN_SIZES: [512, 512, 512, 512]
+      KERNEL_SIZES: [9, 9, 9, 9]
+      STRIDES: [1, 1, 1, 1]
+      PADDINGS: [16, 0, 0, 0]
+      DILATIONS: [1, 1, 1, 1]
+      multi_scale_2d_map: True
+
+  CAPTION_MODULE:
+    NAME: MyCaptionModel
+    PARAMS:
+      RNN_CELL: LSTM
+      DIM_HIDDEN: 512
+      DIM_VID: 512
+      DIM_WORD: 300
+      N_LAYERS: 1
+      TOPK: 10
+      multi_scale_2d_map: True
+
+  PRED_INPUT_SIZE: 512
+
+MODEL:
+  NAME: TAN
+#  CHECKPOINT: /mnt/data-3/data/ding.li/2d_project/experiment/activitynet_for_test/iter002920-0.4979-0.7257.pkl
+  CHECKPOINT: /running_package/ActivityNet/iter002920-0.4979-0.7257.pkl
